@@ -59,6 +59,40 @@ public class MyControllerIntegrationTests {
                 assertEquals(resultOrder.getId(), order.getId());
         }
 
+        @Test
+        public void processOrderFlushSallProductShouldNotPass() throws Exception {
+                List<Product> allProducts = productCanTBeSelled();
+                Set<Product> orderItems = new HashSet<Product>(allProducts);
+                Order order = createOrder(orderItems);
+                productRepository.saveAll(allProducts);
+                order = orderRepository.save(order);
+                mockMvc.perform(post("/orders/{orderId}/processOrder", order.getId())
+                                .contentType("application/json"))
+                                .andExpect(status().isOk());
+                Order resultOrder = orderRepository.findById(order.getId()).get();
+                for(Product p: resultOrder.getItems()) {
+                    Integer tempHadSelled = productCanTBeSelled().stream().filter(or -> or.getId().equals(p.getId())).findFirst().get().getHadSelled();
+                    assertEquals(p.getHadSelled(), tempHadSelled);
+                }
+        }
+
+    @Test
+    public void processOrderFlushSallProductShouldPass() throws Exception {
+        List<Product> allProducts = productCanBeSelled();
+        Set<Product> orderItems = new HashSet<Product>(allProducts);
+        Order order = createOrder(orderItems);
+        productRepository.saveAll(allProducts);
+        order = orderRepository.save(order);
+        mockMvc.perform(post("/orders/{orderId}/processOrder", order.getId())
+                        .contentType("application/json"))
+                .andExpect(status().isOk());
+        Order resultOrder = orderRepository.findById(order.getId()).get();
+        for(Product p: resultOrder.getItems()) {
+            Integer tempHadSelled = productCanBeSelled().stream().filter(or -> or.getId().equals(p.getId())).findFirst().get().getHadSelled() + 1;
+            assertEquals(p.getHadSelled(), tempHadSelled);
+        }
+    }
+
         private static Order createOrder(Set<Product> products) {
                 Order order = new Order();
                 order.setItems(products);
@@ -67,15 +101,33 @@ public class MyControllerIntegrationTests {
 
         private static List<Product> createProducts() {
                 List<Product> products = new ArrayList<>();
-                products.add(new Product(null, 15, 30, "NORMAL", "USB Cable", null, null, null));
-                products.add(new Product(null, 10, 0, "NORMAL", "USB Dongle", null, null, null));
+                products.add(new Product(null, 15, 30, "NORMAL", "USB Cable", null, null, null, null, null, null, null));
+                products.add(new Product(null, 10, 0, "NORMAL", "USB Dongle", null, null, null, null, null, null, null));
                 products.add(new Product(null, 15, 30, "EXPIRABLE", "Butter", LocalDate.now().plusDays(26), null,
-                                null));
-                products.add(new Product(null, 90, 6, "EXPIRABLE", "Milk", LocalDate.now().minusDays(2), null, null));
+                                null, null, null, null, null));
+                products.add(new Product(null, 90, 6, "EXPIRABLE", "Milk", LocalDate.now().minusDays(2), null, null, null, null, null, null));
                 products.add(new Product(null, 15, 30, "SEASONAL", "Watermelon", null, LocalDate.now().minusDays(2),
-                                LocalDate.now().plusDays(58)));
+                                LocalDate.now().plusDays(58), null, null, null, null));
                 products.add(new Product(null, 15, 30, "SEASONAL", "Grapes", null, LocalDate.now().plusDays(180),
-                                LocalDate.now().plusDays(240)));
-                return products;
+                                LocalDate.now().plusDays(240), null, null, null, null));
+            return products;
         }
+
+        private static List<Product> productCanTBeSelled(){
+            List<Product> products = new ArrayList<>();
+
+            products.add(new Product(1L, 15, 30, "FLASHSALE", "USB Cable", null, null, null, LocalDate.now().minusDays(2), 3, 6, 6));
+            products.add(new Product(2L, 15, 30, "FLASHSALE", "USB Cable", null, null, null, LocalDate.now().minusDays(4), 3, 4, 6));
+
+            return products;
+        }
+
+        private static List<Product> productCanBeSelled(){
+        List<Product> products = new ArrayList<>();
+
+        products.add(new Product(1L, 15, 30, "FLASHSALE", "USB Cable", null, null, null, LocalDate.now().minusDays(2), 3, 2, 6));
+        products.add(new Product(2L, 15, 30, "FLASHSALE", "USB Cable", null, null, null, LocalDate.now().minusDays(1), 3, 4, 6));
+
+        return products;
+    }
 }

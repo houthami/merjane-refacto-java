@@ -1,6 +1,7 @@
 package com.nimbleways.springboilerplate.services.implementations;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,19 @@ public class ProductService {
             pr.save(p);
         } else {
             ns.sendExpirationNotification(p.getName(), p.getExpiryDate());
+            p.setAvailable(0);
+            pr.save(p);
+        }
+    }
+
+    public void orderFlashSaleProduct(Product p) {
+        LocalDate endOn = p.getStartSellOn().plusDays(p.getPeriod());
+        if (p.getAvailable() > 0 && endOn.isAfter(LocalDate.now()) && p.getHadSelled() < p.getQuantityMaxToSell()) {
+            p.setAvailable(p.getAvailable() - 1);
+            p.setHadSelled(p.getHadSelled() + 1);
+            pr.save(p);
+        } else {
+            ns.sendExpirationNotification(p.getName(), endOn);
             p.setAvailable(0);
             pr.save(p);
         }

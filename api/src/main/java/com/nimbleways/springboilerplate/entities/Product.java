@@ -38,4 +38,17 @@ public class Product {
 
     @Column(name = "season_end_date")
     private LocalDate seasonEndDate;
+
+    @Column(name = "start_sell_on")
+    private LocalDate startSellOn;
+
+    //période de temps très limitée
+    @Column(name = "period")
+    private Integer period;
+
+    @Column(name = "had_selled")
+    private Integer hadSelled;
+    //quantité maximale d'articles pouvant être vendus, FlashSale
+    @Column(name = "quantity_max_to_sell")
+    private Integer quantityMaxToSell;
 }
