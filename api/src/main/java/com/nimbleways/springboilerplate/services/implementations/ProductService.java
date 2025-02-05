@@ -21,11 +21,27 @@ public class ProductService implements IProductService {
 
     @Override
     public void processProduct(Product product) {
-        ProductStrategy strategy = strategies.get(product.getType());
+        log.info("Processing product: {}", product);
+        String strategyType = this.getStrategyType(product.getType());
+        ProductStrategy strategy = strategies.get(strategyType);
         if (strategy != null) {
             strategy.process(product);
         } else {
             throw new UnsupportedOperationException("Unsupported product type: " + product.getType());
+        }
+    }
+
+    private String getStrategyType(String type) {
+        switch (type) {
+            case "NORMAL":
+                return "normalProductStrategy";
+            case "SEASONAL":
+                return "seasonalProductStrategy";
+            case "EXPIRABLE":
+                return "expirableProductStrategy";
+
+            default:
+                throw new UnsupportedOperationException("Unsupported product type: " + type);
         }
     }
 }
