@@ -46,3 +46,5 @@ management:
       mode: "full"
     java:
       enabled: true
+
+
